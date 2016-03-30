@@ -120,7 +120,8 @@
                             "publisher": "Canonical",
                             "offer": "UbuntuServer",
                             "sku": "14.04.3-LTS"
-                        }
+                        },
+                        "osPlatform": "Linux"
                     },
                     {
                         "name": "sqlVMSize",
@@ -163,7 +164,8 @@
                             "publisher": "MicrosoftSQLServer",
                             "offer": "SQL2014-WS2012R2",
                             "sku": "Standard"
-                        }
+                        },
+                        "osPlatform": "Linux"
                     },
                     {
                         "name": "virtualNetwork",
