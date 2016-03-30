@@ -9,7 +9,7 @@
                 "description": "Location where to create the resources"
             }
         },
-        "adminUserName": {
+        "adminUsername": {
             "type": "string",
             "metadata": {
                 "description": "UserName for the Virtual Machine"
@@ -21,6 +21,19 @@
                 "description": "Password for the Virtual Machine"
             }
         },
+        "sqladminUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "UserName for the SQL Server Virtual Machine"
+            }
+        },
+        "sqladminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for the SQL Server Virtual Machine"
+            }
+        },
+
         "artifactsBaseUrl": {
             "type": "string",
             "defaultValue": "https://s3.amazonaws.com/dgsecure/sqlserveronazure/",
@@ -82,14 +95,51 @@
             "metadata": {
                 "description": "DNS Name of SQL Server Public IP."
             }
+        },
+        "storageAccountName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Storage Account. This has to be a uinique name, up to 24 chars, all lowercase."
+            }
+        },
+        "storageAccountNewOrExisting": {
+            "type": "string",
+            "defaultValue": "new",
+            "allowedValues": [
+                "new",
+                "existing"
+            ],
+            "metadata": {
+                "Description": "Indicates whether the Storage Account is new or existing"
+            }
+        },
+        "storageAccountType": {
+            "type": "string",
+            "metadata": {
+                "description": "The type of the Storage Account created"
+            },
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+                "Standard_LRS",
+                "Standard_GRS",
+                "Standard_RAGRS",
+                "Standard_ZRS"
+            ]
+        },
+        "existingStorageAccountRG": {
+            "type": "string",
+            "metadata": {
+                "description": "Resource Group of the Existing storage account."
+            },
+            "defaultValue": ""
         }
-
     },
     "variables": {
         "baseUrl": "[concat(parameters('artifactsBaseUrl'))]",
         "imagePublisher": "Canonical",
-        "newStorageAccountName": "[concat(uniquestring(resourceGroup().id), 'standardsa')]",
         "ubuntuOSVersion": "14.04.2-LTS",
+        "deployments-api-version": "2015-01-01",
+        "storage-api-version": "2015-06-15",
         "imageOffer": "UbuntuServer",
         "OSDiskName": "osdiskforlinuxsimple",
         "nicName": "UbuntuVMNic",
@@ -112,17 +162,38 @@
         "sqlImageOffer": "SQL2014-WS2012R2",
         "sqlImageSku": "Standard",
         "vmExtensionName": "dscExtension",
+        "storageAccountSetupURL": "[concat(parameters('baseUrl'),'/storageAccount-',parameters('storageAccountNewOrExisting'),'.json')]",
         "creatingPublicIPsUrl": "[concat(parameters('artifactsBaseUrl'),'CreatePublicIP.json')]",
         "publicIPAddressType": "Dynamic"
     },
     "resources": [
         {
-            "type": "Microsoft.Storage/storageAccounts",
-            "name": "[variables('newStorageAccountName')]",
-            "apiVersion": "[variables('apiVersion')]",
-            "location": "[parameters('location')]",
+            "name": "storageAccountSetup",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('deployments-api-version')]",
             "properties": {
-                "accountType": "[variables('storageAccountType')]"
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('storageAccountSetupURL')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "storage-api-version": {
+                        "value": "[variables('storage-api-version')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "storageAccountType": {
+                        "value": "[parameters('storageAccountType')]"
+                    },
+                    "storageAccountName": {
+                        "value": "[parameters('storageAccountName')]"
+                    },
+                    "storageAccountExistingRG": {
+                        "value": "[parameters('existingStorageAccountRG')]"
+                    }
+                }
             }
         },
         {
@@ -307,7 +378,7 @@
             "location": "[parameters('location')]",
             "apiVersion": "[variables('apiVersion')]",
             "dependsOn": [
-                "[concat('Microsoft.Storage/storageAccounts/', variables('newStorageAccountName'))]",
+                "storageAccountSetup",
                 "[concat('Microsoft.Network/networkInterfaces/', variables('sqlSrvDBNicName'))]",
                 "[concat('Microsoft.Network/publicIPAddresses/', parameters('sqlPublicIP'))]"
             ],
@@ -320,8 +391,8 @@
                 },
                 "osProfile": {
                     "computerName": "[parameters('sqlSrvDBName')]",
-                    "adminUsername": "[parameters('adminUsername')]",
-                    "adminPassword": "[parameters('adminPassword')]"
+                    "adminUsername": "[parameters('sqladminUsername')]",
+                    "adminPassword": "[parameters('sqladminPassword')]"
                 },
                 "storageProfile": {
                     "imageReference": {
@@ -333,7 +404,7 @@
                     "osDisk": {
                         "name": "SQL-Svr-DBOSDisk",
                         "vhd": {
-                            "uri": "[concat('http://', variables('newStorageAccountName'), '.blob.core.windows.net/', variables('vhdContainer'), '/', variables('sqlSrvDBOsDiskName'), '.vhd')]"
+                            "uri": "[concat('http://', parameters('storageAccountName'), '.blob.core.windows.net/', variables('vhdContainer'), '/', variables('sqlSrvDBOsDiskName'), '.vhd')]"
                         },
                         "caching": "ReadWrite",
                         "createOption": "FromImage"
@@ -394,7 +465,7 @@
             "name": "[parameters('vmName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[concat('Microsoft.Storage/storageAccounts/', variables('newStorageAccountName'))]",
+                "storageAccountSetup",
                 "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
             ],
             "properties": {
@@ -416,7 +487,7 @@
                     "osDisk": {
                         "name": "osdisk",
                         "vhd": {
-                            "uri": "[concat('http://',variables('newStorageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('OSDiskName'),'.vhd')]"
+                            "uri": "[concat('http://', parameters('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('OSDiskName'),'.vhd')]"
                         },
                         "caching": "ReadWrite",
                         "createOption": "FromImage"
@@ -432,7 +503,7 @@
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": "true",
-                        "storageUri": "[concat('http://',variables('newStorageAccountName'),'.blob.core.windows.net')]"
+                        "storageUri": "[concat('http://', parameters('storageAccountName'),'.blob.core.windows.net')]"
                     }
                 }
             }

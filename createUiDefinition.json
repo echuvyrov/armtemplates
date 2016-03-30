@@ -4,10 +4,10 @@
     "parameters": {
         "basics": [
             {
-                "name": "adminUserName",
+                "name": "adminUsername",
                 "type": "Microsoft.Compute.UserNameTextBox",
                 "label": "VM Admin name",
-                "defaultValue": "",
+                "defaultValue": "dg-admin",
                 "toolTip": "",
                 "constraints": {
                     "required": true
@@ -28,6 +28,32 @@
                     "required": true
                 },
                 "osPlatform": "Linux"
+            },
+            {
+                "name": "sqladminUsername",
+                "type": "Microsoft.Compute.UserNameTextBox",
+                "label": "SQL Server VM Admin name",
+                "defaultValue": "dg-admin",
+                "toolTip": "",
+                "constraints": {
+                    "required": true
+                },
+                "osPlatform": "Windows"
+            },
+            {
+                "name": "sqladminPassword",
+                "type": "Microsoft.Compute.CredentialsCombo",
+                "label": {
+                    "password": "SQL Server VM Admin password",
+                    "confirmPassword": "Confirm password"
+                },
+                "toolTip": {
+                    "password": "The admin password entered here will be used on the Ubuntu DgSecure VM."
+                },
+                "constraints": {
+                    "required": true
+                },
+                "osPlatform": "Windows"
             },
             {
                 "name": "vmName",
@@ -256,8 +282,10 @@
         ],
         "outputs": {
             "location": "[location()]",
-            "adminUserName": "[basics('adminUserName')]",
+            "adminUsername": "[basics('adminUsername')]",
             "adminPassword": "[basics('adminPassword')]",
+            "sqladminUsername": "[basics('sqladminUsername')]",
+            "sqladminPassword": "[basics('sqladminPassword')]",
             "vmName": "[basics('vmName')]",
             "sqlSrvDBName": "[basics('sqlSrvDBName')]",
             "storageAccountNewOrExisting": "[steps('infrastructureInfo').storageAccount.newOrExisting]",
