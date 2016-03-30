@@ -6,7 +6,7 @@
             {
                 "name": "adminUserName",
                 "type": "Microsoft.Compute.UserNameTextBox",
-                "label": "VM user name",
+                "label": "VM Admin name",
                 "defaultValue": "",
                 "toolTip": "",
                 "constraints": {
@@ -15,20 +15,18 @@
             },
             {
                 "name": "adminPassword",
-                "type": "Microsoft.Common.PasswordBox",
+                "type": "Microsoft.Compute.CredentialsCombo",
                 "label": {
-                    "password": "VM user password",
+                    "password": "VM Admin password",
                     "confirmPassword": "Confirm password"
                 },
-                "toolTip": "",
-                "constraints": {
-                    "required": true,
-                    "regex": "^((?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])|(?=.*[0-9])(?=.*[a-z])(?=.*[!@#$%^&*])|(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])|(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])).{6,72}$",
-                    "validationMessage": "Password must be at least 6 characters long and have 3 out of the following: one number, one lower case, one upper case, or one special character"
+                "toolTip": {
+                    "password": "The admin password entered here will be used on the Ubuntu DgSecure VM."
                 },
-                "options": {
-                    "hideConfirmation": false
-                }
+                "constraints": {
+                    "required": true
+                },
+                "osPlatform": "Linux"
             },
             {
                 "name": "vmName",
