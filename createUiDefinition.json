@@ -37,8 +37,8 @@
                 "toolTip": "Name for the Ubuntu Virtual Machine.",
                 "constraints": {
                     "required": true,
-                    "regex": "^[a-z0-9A-Z]{1,10}$",
-                    "validationMessage": "VM Name should contain only letters and numbers, and the value must be 1-10 characters long."
+                    "regex": "^[a-z0-9A-Z]{1,20}$",
+                    "validationMessage": "VM Name should contain only letters and numbers, and the value must be 1-20 characters long."
                 }
             },
             {
@@ -49,8 +49,8 @@
                 "toolTip": "Name for the SQL Server Virtual Machine.",
                 "constraints": {
                     "required": true,
-                    "regex": "^[a-z0-9A-Z]{1,10}$",
-                    "validationMessage": "SQL Server Name should contain only letters and numbers, and the value must be 1-10 characters long."
+                    "regex": "^[a-z0-9A-Z]{1,20}$",
+                    "validationMessage": "SQL Server Name should contain only letters and numbers, and the value must be 1-20 characters long."
 
                 }
             }
