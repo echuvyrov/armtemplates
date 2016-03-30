@@ -11,7 +11,8 @@
                 "toolTip": "",
                 "constraints": {
                     "required": true
-                }
+                },
+                "osPlatform": "Linux"
             },
             {
                 "name": "adminPassword",
