@@ -499,7 +499,7 @@
                         "value": "[variables('baseUrl')]"
                     },
                     "configurationScriptParameters": {
-                        "value": "[reference('SettingUpPublicIPs').outputs.fqdn.value]"
+                        "value": "[concat(reference('SettingUpPublicIPs').outputs.fqdn.value])"
                     }
                 }
             }
