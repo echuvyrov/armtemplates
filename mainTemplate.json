@@ -150,7 +150,6 @@
         "baseUrl": "[concat(parameters('artifactsBaseUrl'))]",
         "deployments-api-version": "2016-02-01",
         "storage-api-version": "2015-06-15",
-        "OSDiskName": "osdiskforlinuxsimple",
         "nicName": "UbuntuVMNic",
         "virtualMachineTemplateURL": "[concat(variables('baseUrl'), 'virtualMachine-',parameters('authenticationType'),'.json')]",
         "sshKeyPath": "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]",
