@@ -48,7 +48,7 @@
         },
         "artifactsBaseUrl": {
             "type": "string",
-            "defaultValue": "https://s3.amazonaws.com/dgsecure/sqlserveronazure/",
+            "defaultValue": "https://raw.githubusercontent.com/echuvyrov/armtemplates/master/",
             "metadata": {
                 "description": "Base URL of the solution template gallery package",
                 "artifactsBaseUrl": ""
@@ -152,7 +152,7 @@
         "storage-api-version": "2015-06-15",
         "OSDiskName": "osdiskforlinuxsimple",
         "nicName": "UbuntuVMNic",
-        "virtualMachineTemplateURL": "[concat(variables('templateBaseUrl'), 'virtualMachine-',parameters('authenticationType'),'.json')]",
+        "virtualMachineTemplateURL": "[concat(variables('baseUrl'), 'virtualMachine-',parameters('authenticationType'),'.json')]",
         "sshKeyPath": "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]",
         "addressPrefix": "10.0.0.0/16",
         "subnetName": "Subnet",
@@ -469,7 +469,7 @@
                         "value": "[parameters('location')]"
                     },
                     "storageAccountName": {
-                        "value": "[variables('storageAccountName')]"
+                        "value": "[parameters('storageAccountName')]"
                     },
                     "adminUsername": {
                         "value": "[parameters('adminUsername')]"
@@ -486,8 +486,8 @@
                     "vmSize": {
                         "value": "[variables('vmSize')]"
                     },
-                    "vmVhdsContainerName": {
-                        "value": "[variables('vhdContainer')]"
+                    "nicName": {
+                        "value": "[variables('nicName')]"
                     },
                     "virtualMachinesApiVersion": {
                         "value": "[variables('apiVersion')]"
@@ -499,7 +499,7 @@
                         "value": "[variables('baseUrl')]"
                     },
                     "configurationScriptParameters": {
-                        "value": "[reference('SettingUpPublicIPs').outputs.fqdn.value)]"
+                        "value": "[reference('SettingUpPublicIPs').outputs.fqdn.value]"
                     }
                 }
             }
