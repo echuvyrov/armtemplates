@@ -21,6 +21,19 @@
                 "description": "Password for the Virtual Machine"
             }
         },
+        "authenticationType": {
+            "type": "string",
+            "metadata": {
+                "description": "Authentication type"
+            }
+        },
+        "sshPublicKey": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "SSH public key"
+            }
+        },
         "sqladminUsername": {
             "type": "string",
             "metadata": {
@@ -33,7 +46,6 @@
                 "description": "Password for the SQL Server Virtual Machine"
             }
         },
-
         "artifactsBaseUrl": {
             "type": "string",
             "defaultValue": "https://s3.amazonaws.com/dgsecure/sqlserveronazure/",
@@ -136,18 +148,16 @@
     },
     "variables": {
         "baseUrl": "[concat(parameters('artifactsBaseUrl'))]",
-        "imagePublisher": "Canonical",
-        "ubuntuOSVersion": "14.04.2-LTS",
         "deployments-api-version": "2016-02-01",
         "storage-api-version": "2015-06-15",
-        "imageOffer": "UbuntuServer",
         "OSDiskName": "osdiskforlinuxsimple",
         "nicName": "UbuntuVMNic",
+        "virtualMachineTemplateURL": "[concat(variables('templateBaseUrl'), 'virtualMachine-',parameters('authenticationType'),'.json')]",
+        "sshKeyPath": "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]",
         "addressPrefix": "10.0.0.0/16",
         "subnetName": "Subnet",
         "subnetPrefix": "10.0.0.0/24",
         "storageAccountType": "Standard_LRS",
-        "vmStorageAccountContainerName": "vhds",
         "vmSize": "Standard_D1",
         "virtualNetworkName": "MyVNET",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
@@ -420,26 +430,6 @@
         },
         {
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(parameters('vmName'), '/install_dgsecure')]",
-            "apiVersion": "[variables('apiVersion')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
-                "[concat('Microsoft.Compute/virtualMachines/',  'sqlSrv14')]"
-            ],
-            "properties": {
-                "publisher": "Microsoft.OSTCExtensions",
-                "type": "CustomScriptForLinux",
-                "typeHandlerVersion": "1.4",
-                "autoUpgradeMinorVersion": true,
-                "settings": {
-                    "fileUris": [ "[concat(variables('baseUrl'),'SetupDgSecure.sh')]" ],
-                    "commandToExecute": "[concat('sh SetupDgSecure.sh ', reference('SettingUpPublicIPs').outputs.fqdn.value)]"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat( 'sqlSrv14','/WinRMCustomScriptExtension')]",
             "apiVersion": "[variables('apiVersion')]",
             "location": "[parameters('location')]",
@@ -458,50 +448,58 @@
             }
         },
         {
-            "apiVersion": "[variables('apiVersion')]",
-            "type": "Microsoft.Compute/virtualMachines",
-            "name": "[parameters('vmName')]",
-            "location": "[parameters('location')]",
+            "name": "ubuntuVirtualMachineTemplate",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('deployments-api-version')]",
             "dependsOn": [
                 "storageAccountSetup",
                 "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
             ],
             "properties": {
-                "hardwareProfile": {
-                    "vmSize": "[variables('vmSize')]"
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('virtualMachineTemplateURL')]",
+                    "contentVersion": "1.0.0.0"
                 },
-                "osProfile": {
-                    "computerName": "[parameters('vmName')]",
-                    "adminUsername": "[parameters('adminUsername')]",
-                    "adminPassword": "[parameters('adminPassword')]"
-                },
-                "storageProfile": {
-                    "imageReference": {
-                        "publisher": "[variables('imagePublisher')]",
-                        "offer": "[variables('imageOffer')]",
-                        "sku": "[variables('ubuntuOSVersion')]",
-                        "version": "latest"
+                "parameters": {
+                    "vmName": {
+                        "value": "[parameters('vmName')]"
                     },
-                    "osDisk": {
-                        "name": "osdisk",
-                        "vhd": {
-                            "uri": "[concat('http://', parameters('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('OSDiskName'),'.vhd')]"
-                        },
-                        "caching": "ReadWrite",
-                        "createOption": "FromImage"
-                    }
-                },
-                "networkProfile": {
-                    "networkInterfaces": [
-                        {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]"
-                        }
-                    ]
-                },
-                "diagnosticsProfile": {
-                    "bootDiagnostics": {
-                        "enabled": "true",
-                        "storageUri": "[concat('http://', parameters('storageAccountName'),'.blob.core.windows.net')]"
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "storageAccountName": {
+                        "value": "[variables('storageAccountName')]"
+                    },
+                    "adminUsername": {
+                        "value": "[parameters('adminUsername')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('adminPassword')]"
+                    },
+                    "sshPublicKey": {
+                        "value": "[parameters('sshPublicKey')]"
+                    },
+                    "sshKeyPath": {
+                        "value": "[variables('sshKeyPath')]"
+                    },
+                    "vmSize": {
+                        "value": "[variables('vmSize')]"
+                    },
+                    "vmVhdsContainerName": {
+                        "value": "[variables('vhdContainer')]"
+                    },
+                    "virtualMachinesApiVersion": {
+                        "value": "[variables('apiVersion')]"
+                    },
+                    "vmExtensionsApiVersion": {
+                        "value": "[variables('apiVersion')]"
+                    },
+                    "configurationScriptURL": {
+                        "value": "[variables('baseUrl')]"
+                    },
+                    "configurationScriptParameters": {
+                        "value": "[reference('SettingUpPublicIPs').outputs.fqdn.value)]"
                     }
                 }
             }
