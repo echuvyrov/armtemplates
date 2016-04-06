@@ -283,7 +283,9 @@
         "outputs": {
             "location": "[location()]",
             "adminUsername": "[basics('adminUsername')]",
-            "adminPassword": "[basics('adminPassword')]",
+            "adminPassword": "[basics('adminPassword').password]",
+            "authenticationType": "[basics('adminPassword').authenticationType]",
+            "sshPublicKey": "[basics('adminPassword').sshPublicKey]",
             "sqladminUsername": "[basics('sqladminUsername')]",
             "sqladminPassword": "[basics('sqladminPassword')]",
             "vmName": "[basics('vmName')]",

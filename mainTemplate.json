@@ -72,7 +72,7 @@
         },
         "publicIPAddressName": {
             "type": "string",
-            "defaultValue": "matrixpublicip",
+            "defaultValue": "dgsecurepublicip",
             "metadata": {
                 "description": "Public IP Address of the DgSecure Node."
             }
@@ -138,7 +138,7 @@
         "baseUrl": "[concat(parameters('artifactsBaseUrl'))]",
         "imagePublisher": "Canonical",
         "ubuntuOSVersion": "14.04.2-LTS",
-        "deployments-api-version": "2015-01-01",
+        "deployments-api-version": "2016-02-01",
         "storage-api-version": "2015-06-15",
         "imageOffer": "UbuntuServer",
         "OSDiskName": "osdiskforlinuxsimple",
@@ -162,7 +162,7 @@
         "sqlImageOffer": "SQL2014-WS2012R2",
         "sqlImageSku": "Standard",
         "vmExtensionName": "dscExtension",
-        "storageAccountSetupURL": "[concat(parameters('baseUrl'),'/storageAccount-',parameters('storageAccountNewOrExisting'),'.json')]",
+        "storageAccountSetupURL": "[concat(parameters('artifactsBaseUrl'),'storageAccount-',parameters('storageAccountNewOrExisting'),'.json')]",
         "creatingPublicIPsUrl": "[concat(parameters('artifactsBaseUrl'),'CreatePublicIP.json')]",
         "publicIPAddressType": "Dynamic"
     },
@@ -197,21 +197,9 @@
             }
         },
         {
-            "apiVersion": "[variables('apiVersion')]",
-            "type": "Microsoft.Network/publicIPAddresses",
-            "name": "[parameters('publicIPAddressName')]",
-            "location": "[parameters('location')]",
-            "properties": {
-                "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
-                "dnsSettings": {
-                    "domainNameLabel": "[parameters('dnsNameForPublicIP')]"
-                }
-            }
-        },
-        {
             "name": "SettingUpPublicIPs",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2016-02-01",
+            "apiVersion": "[variables('deployments-api-version')]",
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
@@ -227,6 +215,32 @@
                     },
                     "dnsPrefix": {
                         "value": "[parameters('dnsNameForSQLPublicIP')]"
+                    },
+                    "publicIPAddressType": {
+                        "value": "[variables('publicIPAddressType')]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "SettingUpUbuntuPublicIPs",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('deployments-api-version')]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('creatingPublicIPsUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "vmpublicIPAddressName": {
+                        "value": "[parameters('publicIPAddressName')]"
+                    },
+                    "dnsPrefix": {
+                        "value": "[parameters('dnsNameForPublicIP')]"
                     },
                     "publicIPAddressType": {
                         "value": "[variables('publicIPAddressType')]"
@@ -326,27 +340,12 @@
             }
         },
         {
-            "name": "[parameters('sqlPublicIP')]",
-            "type": "Microsoft.Network/publicIPAddresses",
-            "location": "[parameters('location')]",
-            "apiVersion": "[variables('apiVersion')]",
-            "tags": {
-                "displayName": "SqlPIP"
-            },
-            "properties": {
-                "publicIPAllocationMethod": "Dynamic",
-                "idleTimeoutInMinutes": 4,
-                "dnsSettings": {
-                    "domainNameLabel": "[parameters('dnsNameForSQLPublicIP')]"
-                }
-            }
-        },
-        {
             "name": "[variables('sqlSrvDBNicName')]",
             "type": "Microsoft.Network/networkInterfaces",
             "location": "[parameters('location')]",
             "apiVersion": "[variables('apiVersion')]",
             "dependsOn": [
+                "Microsoft.Resources/deployments/SettingUpUbuntuPublicIPs",
                 "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
             ],
             "tags": {
@@ -362,7 +361,7 @@
                                 "id": "[variables('subnetRef')]"
                             },
                             "publicIPAddress": {
-                                "id": "[variables('sqlPublicIPRef')]"
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('sqlPublicIp'))]"
                             },
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('frontEndNSGName'))]"
@@ -379,8 +378,7 @@
             "apiVersion": "[variables('apiVersion')]",
             "dependsOn": [
                 "storageAccountSetup",
-                "[concat('Microsoft.Network/networkInterfaces/', variables('sqlSrvDBNicName'))]",
-                "[concat('Microsoft.Network/publicIPAddresses/', parameters('sqlPublicIP'))]"
+                "[concat('Microsoft.Network/networkInterfaces/', variables('sqlSrvDBNicName'))]"
             ],
             "tags": {
                 "displayName": "SQL-Svr-DB"
