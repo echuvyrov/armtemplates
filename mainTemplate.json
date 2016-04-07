@@ -48,7 +48,7 @@
         },
         "artifactsBaseUrl": {
             "type": "string",
-            "defaultValue": "https://raw.githubusercontent.com/echuvyrov/armtemplates/master/",
+            "defaultValue": "https://s3.amazonaws.com/dgsecure/sqlserveronazure/",
             "metadata": {
                 "description": "Base URL of the solution template gallery package",
                 "artifactsBaseUrl": ""
@@ -499,6 +499,9 @@
                     },
                     "configurationScriptParameters": {
                         "value": "[concat(reference('SettingUpPublicIPs').outputs.fqdn.value])"
+                    },
+                    "sqlVMName": { 
+                        "value": "[concat('sqlSrv14')]"
                     }
                 }
             }
