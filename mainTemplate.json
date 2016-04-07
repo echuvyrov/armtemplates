@@ -48,7 +48,7 @@
         },
         "artifactsBaseUrl": {
             "type": "string",
-            "defaultValue": "https://s3.amazonaws.com/dgsecure/sqlserveronazure/",
+            "defaultValue": "https://raw.githubusercontent.com/echuvyrov/armtemplates/master/",
             "metadata": {
                 "description": "Base URL of the solution template gallery package",
                 "artifactsBaseUrl": ""
@@ -499,10 +499,27 @@
                     },
                     "configurationScriptParameters": {
                         "value": "[concat(reference('SettingUpPublicIPs').outputs.fqdn.value])"
-                    },
-                    "sqlVMName": { 
-                        "value": "[concat('sqlSrv14')]"
                     }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('vmName'), '/install_dgsecure')]",
+            "apiVersion": "[parameters('vmExtensionsApiVersion')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "ubuntuVirtualMachineTemplate",
+                "[concat('Microsoft.Compute/virtualMachines/', 'sqlSrv14')]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.OSTCExtensions",
+                "type": "CustomScriptForLinux",
+                "typeHandlerVersion": "1.4",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [ "[concat(parameters('configurationScriptURL'),'SetupDgSecure.sh')]" ],
+                    "commandToExecute": "[concat('sh SetupDgSecure.sh ', parameters('configurationScriptParameters'))]"
                 }
             }
         }
