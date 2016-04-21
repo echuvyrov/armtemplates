@@ -255,7 +255,7 @@
                         "name": "acceptTerms",
                         "type": "Microsoft.Common.TextBox",
                         "label": "Please accept the terms and conditions",
-                        "defaultValue": "VectorH",
+                        "defaultValue": "",
                         "toolTip": "Please type the word 'accept' in the field below",
                         "constraints": {
                             "required": true,
