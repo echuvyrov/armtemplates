@@ -48,7 +48,7 @@
         },
         "artifactsBaseUrl": {
             "type": "string",
-            "defaultValue": "https://raw.githubusercontent.com/echuvyrov/armtemplates/master/",
+            "defaultValue": "https://s3.amazonaws.com/dgsecure/sqlserveronazure",
             "metadata": {
                 "description": "Base URL of the solution template gallery package",
                 "artifactsBaseUrl": ""
@@ -147,7 +147,7 @@
         }
     },
     "variables": {
-        "baseUrl": "[concat(parameters('artifactsBaseUrl'))]",
+        "baseUrl": "[concat(parameters('artifactsBaseUrl'), '/')]",
         "deployments-api-version": "2016-02-01",
         "storage-api-version": "2015-06-15",
         "nicName": "UbuntuVMNic",
@@ -171,8 +171,8 @@
         "sqlImageOffer": "SQL2014-WS2012R2",
         "sqlImageSku": "Standard",
         "vmExtensionName": "dscExtension",
-        "storageAccountSetupURL": "[concat(parameters('artifactsBaseUrl'),'storageAccount-',parameters('storageAccountNewOrExisting'),'.json')]",
-        "creatingPublicIPsUrl": "[concat(parameters('artifactsBaseUrl'),'CreatePublicIP.json')]",
+        "storageAccountSetupURL": "[concat(variables('baseUrl'),'storageAccount-',parameters('storageAccountNewOrExisting'),'.json')]",
+        "creatingPublicIPsUrl": "[concat(variables('baseUrl'),'CreatePublicIP.json')]",
         "publicIPAddressType": "Dynamic"
     },
     "resources": [
@@ -441,7 +441,7 @@
                 "typeHandlerVersion": "1.4",
                 "autoUpgradeMinorVersion": true,
                 "settings": {
-                    "fileUris": [ "[concat(variables('baseUrl'),'db/createdb.ps1')]" ],
+                    "fileUris": [ "[concat(variables('baseUrl'),'createdb.ps1')]" ],
                     "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -file createdb.ps1 ',parameters('sqlSrvDBName'))]"
                 }
             }
@@ -506,7 +506,7 @@
         {
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(parameters('vmName'), '/install_dgsecure')]",
-            "apiVersion": "[parameters('vmExtensionsApiVersion')]",
+            "apiVersion": "[variables('apiVersion')]",
             "location": "[parameters('location')]",
             "dependsOn": [
                 "ubuntuVirtualMachineTemplate",
@@ -518,8 +518,8 @@
                 "typeHandlerVersion": "1.4",
                 "autoUpgradeMinorVersion": true,
                 "settings": {
-                    "fileUris": [ "[concat(parameters('configurationScriptURL'),'SetupDgSecure.sh')]" ],
-                    "commandToExecute": "[concat('sh SetupDgSecure.sh ', parameters('configurationScriptParameters'))]"
+                    "fileUris": [ "[concat(variables('baseUrl'),'SetupDgSecure.sh')]" ],
+                    "commandToExecute": "[concat('sh SetupDgSecure.sh ', reference('SettingUpPublicIPs').outputs.fqdn.value)]"
                 }
             }
         }

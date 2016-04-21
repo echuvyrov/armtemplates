@@ -1,0 +1,53 @@
+{
+  "location": {
+    "value": "westus"
+  },
+  "adminUsername": {
+    "value": "dg-admin"
+  },
+  "adminPassword": {
+    "value": "Valley2016!"
+  },
+  "authenticationType": {
+    "value": "password"
+  },
+  "sqladminUsername": {
+    "value": "dg-admin"
+  },
+  "sqladminPassword": {
+    "value": "Valley2016!"
+  },
+  "vmName": {
+    "value": "MyUbuntuVM"
+  },
+  "sqlSrvDBName": {
+    "value": "SqlServer14"
+  },
+  "storageAccountNewOrExisting": {
+    "value": "new"
+  },
+  "storageAccountName": {
+    "value": "hhhh"
+  },
+  "storageAccountType": {
+    "value": "Standard_LRS"
+  },
+  "existingStorageAccountRG": {
+    "value": "dgdg11"
+  },
+  "publicIPAddressName": {
+    "value": "dgsecurepublicip"
+  },
+  "dnsNameForPublicIP": {
+    "value": "ubuntudns1"
+  },
+  "sqlPublicIp": {
+    "value": "dgsqlpublicip"
+  },
+  "dnsNameForSQLPublicIP": {
+    "value": "sqldns1"
+  },
+  "sqlVMSize": {
+    "value": "Standard_D13_v2"
+  }
+}
