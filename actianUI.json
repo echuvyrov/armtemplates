@@ -250,7 +250,7 @@
                                 "domainNameLabel": true
                             }
                         }
-                    }
+                    },
                     {
                         "name": "acceptTerms",
                         "type": "Microsoft.Common.TextBox",
