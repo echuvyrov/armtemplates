@@ -262,8 +262,7 @@
                             "regex": "accept",
                             "validationMessage": "You must type the word 'accept' in this field"
                         }
-                    },
-
+                    }
                 ]
             }
         ],
