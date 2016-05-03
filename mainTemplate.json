@@ -130,13 +130,7 @@
             "metadata": {
                 "description": "The type of the Storage Account created"
             },
-            "defaultValue": "Standard_LRS",
-            "allowedValues": [
-                "Standard_LRS",
-                "Standard_GRS",
-                "Standard_RAGRS",
-                "Standard_ZRS"
-            ]
+            "defaultValue": "Standard_LRS"
         },
         "existingStorageAccountRG": {
             "type": "string",
@@ -163,8 +157,7 @@
         "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
         "apiVersion": "2015-06-15",
         "vhdContainer": "vhds",
-        "virtualNetworkName": "['Vnet']",
-        "sqlSrvDBOsDiskName": "['DBSrvOS']",
+        "sqlSrvDBOsDiskName": "DBSrvOS",
         "sqlSrvDBNicName": "SQLVMNic",
         "sqlPublicIPRef": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('sqlPublicIP'))]",
         "sqlImagePublisher": "MicrosoftSQLServer",
@@ -493,12 +486,6 @@
                     },
                     "vmExtensionsApiVersion": {
                         "value": "[variables('apiVersion')]"
-                    },
-                    "configurationScriptURL": {
-                        "value": "[variables('baseUrl')]"
-                    },
-                    "configurationScriptParameters": {
-                        "value": "[concat(reference('SettingUpPublicIPs').outputs.fqdn.value])"
                     }
                 }
             }

@@ -43,12 +43,6 @@
         },
         "vmExtensionsApiVersion": {
             "type": "string"
-        },
-        "configurationScriptURL": {
-            "type": "string"
-        },
-        "configurationScriptParameters": {
-            "type": "securestring"
         }
     },
     "variables": {
@@ -60,25 +54,6 @@
         "OSDiskName": "osdiskforlinuxsimple"
     },
     "resources": [
-        {
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(parameters('vmName'), '/install_dgsecure')]",
-            "apiVersion": "[parameters('vmExtensionsApiVersion')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
-            ],
-            "properties": {
-                "publisher": "Microsoft.OSTCExtensions",
-                "type": "CustomScriptForLinux",
-                "typeHandlerVersion": "1.4",
-                "autoUpgradeMinorVersion": true,
-                "settings": {
-                    "fileUris": [ "[concat(parameters('configurationScriptURL'),'SetupDgSecure.sh')]" ],
-                    "commandToExecute": "[concat('sh SetupDgSecure.sh ', parameters('configurationScriptParameters'))]"
-                }
-            }
-        },
         {
             "apiVersion": "[variables('apiVersion')]",
             "type": "Microsoft.Compute/virtualMachines",
