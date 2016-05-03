@@ -35,7 +35,7 @@
       "value": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('vmpublicIPAddressName'))]"
     },
     "fqdn": {
-      "value": "[reference(concat('Microsoft.Network/publicIPAddresses',parameters('vmpublicIPAddressName')),'2015-06-15').dnsSettings.fqdn]",
+      "value": "[reference(concat('Microsoft.Network/publicIPAddresses/',parameters('vmpublicIPAddressName')),'2015-06-15').dnsSettings.fqdn]",
       "type": "string"
     }
   }
