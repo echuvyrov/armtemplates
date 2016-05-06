@@ -194,42 +194,6 @@
                         "osPlatform": "Linux"
                     },
                     {
-                        "name": "virtualNetwork",
-                        "type": "Microsoft.Network.VirtualNetworkCombo",
-                        "label": {
-                            "virtualNetwork": "Virtual network",
-                            "subnets": "Subnet"
-                        },
-                        "toolTip": {
-                            "virtualNetwork": "Virtual Network Name",
-                            "subnets": "Subnet requied for the DgSecure product"
-                        },
-                        "defaultValue": {
-                            "addressPrefixSize": "/16"
-                        },
-                        "constraints": {
-                            "minAddressPrefixSize": "/16"
-                        },
-                        "options": {
-                            "hideExisting": false
-                        },
-                        "subnets": {
-                            "subnet1": {
-                                "label": "Subnet",
-                                "defaultValue": {
-                                    "name": "Subnet-1",
-                                    "addressPrefixSize": "/24"
-                                },
-                                "constraints": {
-                                    "minAddressPrefixSize": "/24",
-                                    "minAddressCount": 12,
-                                    "requireContiguousAddresses": false
-                                }
-                            }
-                        }
-
-                    },
-                    {
                         "name": "dnsNameForPublicIP",
                         "type": "Microsoft.Network.PublicIpAddressCombo",
                         "label": {

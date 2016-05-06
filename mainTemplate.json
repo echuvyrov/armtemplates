@@ -1,514 +1,514 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-        "location": {
-            "type": "string",
-            "defaultValue": "westus",
-            "metadata": {
-                "description": "Location where to create the resources"
-            }
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "westus",
+      "metadata": {
+        "description": "Location where to create the resources"
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "UserName for the Virtual Machine"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for the Virtual Machine"
+      }
+    },
+    "authenticationType": {
+      "type": "string",
+      "metadata": {
+        "description": "Authentication type"
+      }
+    },
+    "sshPublicKey": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "SSH public key"
+      }
+    },
+    "sqladminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "UserName for the SQL Server Virtual Machine"
+      }
+    },
+    "sqladminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for the SQL Server Virtual Machine"
+      }
+    },
+    "artifactsBaseUrl": {
+      "type": "string",
+      "defaultValue": "https://s3.amazonaws.com/dgsecure/sqlserveronazure",
+      "metadata": {
+        "description": "Base URL of the solution template gallery package",
+        "artifactsBaseUrl": ""
+      }
+    },
+    "vmName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name for the Ubuntu Virtual Machine."
+      },
+      "defaultValue": "MyUbuntuVM"
+    },
+    "sqlSrvDBName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name for the SQL Server Virtual Machine."
+      },
+      "defaultValue": "SqlServer14"
+    },
+    "sqlVMSize": {
+      "type": "string",
+      "metadata": {
+        "description": "The size of the SQL VM Created"
+      },
+      "defaultValue": "Standard_DS1"
+    },
+    "frontEndNSGName": {
+      "type": "string",
+      "defaultValue": "NSG-FrontEnd",
+      "metadata": {
+        "description": "Name for the NSG used to allow remote RDP and Web Traffic"
+      }
+    },
+    "publicIPAddressName": {
+      "type": "string",
+      "defaultValue": "dgsecurepublicip",
+      "metadata": {
+        "description": "Public IP Address of the DgSecure Node."
+      }
+    },
+    "dnsNameForPublicIP": {
+      "type": "string",
+      "metadata": {
+        "description": "DNS Name of DgSecure Public IP."
+      }
+    },
+    "sqlPublicIp": {
+      "type": "string",
+      "defaultValue": "SqlPip",
+      "metadata": {
+        "description": "Public IP Address of the SQL Server node."
+      }
+    },
+    "dnsNameForSQLPublicIP": {
+      "type": "string",
+      "metadata": {
+        "description": "DNS Name of SQL Server Public IP."
+      }
+    },
+    "storageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Storage Account. This has to be a uinique name, up to 24 chars, all lowercase."
+      }
+    },
+    "storageAccountNewOrExisting": {
+      "type": "string",
+      "defaultValue": "new",
+      "allowedValues": [
+        "new",
+        "existing"
+      ],
+      "metadata": {
+        "Description": "Indicates whether the Storage Account is new or existing"
+      }
+    },
+    "storageAccountType": {
+      "type": "string",
+      "metadata": {
+        "description": "The type of the Storage Account created"
+      },
+      "defaultValue": "Standard_LRS"
+    },
+    "existingStorageAccountRG": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource Group of the Existing storage account."
+      },
+      "defaultValue": ""
+    }
+  },
+  "variables": {
+    "baseUrl": "[concat(parameters('artifactsBaseUrl'), '/')]",
+    "deployments-api-version": "2016-02-01",
+    "storage-api-version": "2015-06-15",
+    "nicName": "UbuntuVMNic",
+    "virtualMachineTemplateURL": "[concat(variables('baseUrl'), 'virtualMachine-',parameters('authenticationType'),'.json')]",
+    "sshKeyPath": "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]",
+    "addressPrefix": "10.0.0.0/16",
+    "subnetName": "Subnet",
+    "subnetPrefix": "10.0.0.0/24",
+    "storageAccountType": "Standard_LRS",
+    "vmSize": "Standard_D1",
+    "virtualNetworkName": "MyVNET",
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
+    "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
+    "apiVersion": "2015-06-15",
+    "vhdContainer": "vhds",
+    "sqlSrvDBOsDiskName": "DBSrvOS",
+    "sqlSrvDBNicName": "SQLVMNic",
+    "sqlPublicIPRef": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('sqlPublicIP'))]",
+    "sqlImagePublisher": "MicrosoftSQLServer",
+    "sqlImageOffer": "SQL2014-WS2012R2",
+    "sqlImageSku": "Standard",
+    "vmExtensionName": "dscExtension",
+    "storageAccountSetupURL": "[concat(variables('baseUrl'),'storageAccount-',parameters('storageAccountNewOrExisting'),'.json')]",
+    "creatingPublicIPsUrl": "[concat(variables('baseUrl'),'CreatePublicIP.json')]",
+    "publicIPAddressType": "Dynamic"
+  },
+  "resources": [
+    {
+      "name": "storageAccountSetup",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('deployments-api-version')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('storageAccountSetupURL')]",
+          "contentVersion": "1.0.0.0"
         },
-        "adminUsername": {
-            "type": "string",
-            "metadata": {
-                "description": "UserName for the Virtual Machine"
-            }
-        },
-        "adminPassword": {
-            "type": "securestring",
-            "metadata": {
-                "description": "Password for the Virtual Machine"
-            }
-        },
-        "authenticationType": {
-            "type": "string",
-            "metadata": {
-                "description": "Authentication type"
-            }
-        },
-        "sshPublicKey": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "SSH public key"
-            }
-        },
-        "sqladminUsername": {
-            "type": "string",
-            "metadata": {
-                "description": "UserName for the SQL Server Virtual Machine"
-            }
-        },
-        "sqladminPassword": {
-            "type": "securestring",
-            "metadata": {
-                "description": "Password for the SQL Server Virtual Machine"
-            }
-        },
-        "artifactsBaseUrl": {
-            "type": "string",
-            "defaultValue": "https://raw.githubusercontent.com/echuvyrov/armtemplates/master",
-            "metadata": {
-                "description": "Base URL of the solution template gallery package",
-                "artifactsBaseUrl": ""
-            }
-        },
-        "vmName": {
-            "type": "string",
-            "metadata": {
-                "description": "Name for the Ubuntu Virtual Machine."
-            },
-            "defaultValue": "MyUbuntuVM"
-        },
-        "sqlSrvDBName": {
-            "type": "string",
-            "metadata": {
-                "description": "Name for the SQL Server Virtual Machine."
-            },
-            "defaultValue": "SqlServer14"
-        },
-        "sqlVMSize": {
-            "type": "string",
-            "metadata": {
-                "description": "The size of the SQL VM Created"
-            },
-            "defaultValue": "Standard_DS1"
-        },
-        "frontEndNSGName": {
-            "type": "string",
-            "defaultValue": "NSG-FrontEnd",
-            "metadata": {
-                "description": "Name for the NSG used to allow remote RDP and Web Traffic"
-            }
-        },
-        "publicIPAddressName": {
-            "type": "string",
-            "defaultValue": "dgsecurepublicip",
-            "metadata": {
-                "description": "Public IP Address of the DgSecure Node."
-            }
-        },
-        "dnsNameForPublicIP": {
-            "type": "string",
-            "metadata": {
-                "description": "DNS Name of DgSecure Public IP."
-            }
-        },
-        "sqlPublicIp": {
-            "type": "string",
-            "defaultValue": "SqlPip",
-            "metadata": {
-                "description": "Public IP Address of the SQL Server node."
-            }
-        },
-        "dnsNameForSQLPublicIP": {
-            "type": "string",
-            "metadata": {
-                "description": "DNS Name of SQL Server Public IP."
-            }
-        },
-        "storageAccountName": {
-            "type": "string",
-            "metadata": {
-                "description": "Name of the Storage Account. This has to be a uinique name, up to 24 chars, all lowercase."
-            }
-        },
-        "storageAccountNewOrExisting": {
-            "type": "string",
-            "defaultValue": "new",
-            "allowedValues": [
-                "new",
-                "existing"
-            ],
-            "metadata": {
-                "Description": "Indicates whether the Storage Account is new or existing"
-            }
-        },
-        "storageAccountType": {
-            "type": "string",
-            "metadata": {
-                "description": "The type of the Storage Account created"
-            },
-            "defaultValue": "Standard_LRS"
-        },
-        "existingStorageAccountRG": {
-            "type": "string",
-            "metadata": {
-                "description": "Resource Group of the Existing storage account."
-            },
-            "defaultValue": ""
+        "parameters": {
+          "storage-api-version": {
+            "value": "[variables('storage-api-version')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "storageAccountType": {
+            "value": "[parameters('storageAccountType')]"
+          },
+          "storageAccountName": {
+            "value": "[parameters('storageAccountName')]"
+          },
+          "storageAccountExistingRG": {
+            "value": "[parameters('existingStorageAccountRG')]"
+          }
         }
+      }
     },
-    "variables": {
-        "baseUrl": "[concat(parameters('artifactsBaseUrl'), '/')]",
-        "deployments-api-version": "2016-02-01",
-        "storage-api-version": "2015-06-15",
-        "nicName": "UbuntuVMNic",
-        "virtualMachineTemplateURL": "[concat(variables('baseUrl'), 'virtualMachine-',parameters('authenticationType'),'.json')]",
-        "sshKeyPath": "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]",
-        "addressPrefix": "10.0.0.0/16",
-        "subnetName": "Subnet",
-        "subnetPrefix": "10.0.0.0/24",
-        "storageAccountType": "Standard_LRS",
-        "vmSize": "Standard_D1",
-        "virtualNetworkName": "MyVNET",
-        "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
-        "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
-        "apiVersion": "2015-06-15",
-        "vhdContainer": "vhds",
-        "sqlSrvDBOsDiskName": "DBSrvOS",
-        "sqlSrvDBNicName": "SQLVMNic",
-        "sqlPublicIPRef": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('sqlPublicIP'))]",
-        "sqlImagePublisher": "MicrosoftSQLServer",
-        "sqlImageOffer": "SQL2014-WS2012R2",
-        "sqlImageSku": "Standard",
-        "vmExtensionName": "dscExtension",
-        "storageAccountSetupURL": "[concat(variables('baseUrl'),'storageAccount-',parameters('storageAccountNewOrExisting'),'.json')]",
-        "creatingPublicIPsUrl": "[concat(variables('baseUrl'),'CreatePublicIP.json')]",
-        "publicIPAddressType": "Dynamic"
+    {
+      "name": "SettingUpPublicIPs",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('deployments-api-version')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('creatingPublicIPsUrl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "vmpublicIPAddressName": {
+            "value": "[parameters('sqlPublicIP')]"
+          },
+          "dnsPrefix": {
+            "value": "[parameters('dnsNameForSQLPublicIP')]"
+          },
+          "publicIPAddressType": {
+            "value": "[variables('publicIPAddressType')]"
+          }
+        }
+      }
     },
-    "resources": [
-        {
-            "name": "storageAccountSetup",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('deployments-api-version')]",
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('storageAccountSetupURL')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "storage-api-version": {
-                        "value": "[variables('storage-api-version')]"
-                    },
-                    "location": {
-                        "value": "[parameters('location')]"
-                    },
-                    "storageAccountType": {
-                        "value": "[parameters('storageAccountType')]"
-                    },
-                    "storageAccountName": {
-                        "value": "[parameters('storageAccountName')]"
-                    },
-                    "storageAccountExistingRG": {
-                        "value": "[parameters('existingStorageAccountRG')]"
-                    }
-                }
-            }
+    {
+      "name": "SettingUpUbuntuPublicIPs",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('deployments-api-version')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('creatingPublicIPsUrl')]",
+          "contentVersion": "1.0.0.0"
         },
-        {
-            "name": "SettingUpPublicIPs",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('deployments-api-version')]",
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('creatingPublicIPsUrl')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "location": {
-                        "value": "[parameters('location')]"
-                    },
-                    "vmpublicIPAddressName": {
-                        "value": "[parameters('sqlPublicIP')]"
-                    },
-                    "dnsPrefix": {
-                        "value": "[parameters('dnsNameForSQLPublicIP')]"
-                    },
-                    "publicIPAddressType": {
-                        "value": "[variables('publicIPAddressType')]"
-                    }
-                }
-            }
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "vmpublicIPAddressName": {
+            "value": "[parameters('publicIPAddressName')]"
+          },
+          "dnsPrefix": {
+            "value": "[parameters('dnsNameForPublicIP')]"
+          },
+          "publicIPAddressType": {
+            "value": "[variables('publicIPAddressType')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('virtualNetworkName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('addressPrefix')]"
+          ]
         },
-        {
-            "name": "SettingUpUbuntuPublicIPs",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('deployments-api-version')]",
+        "subnets": [
+          {
+            "name": "[variables('subnetName')]",
             "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('creatingPublicIPsUrl')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "location": {
-                        "value": "[parameters('location')]"
-                    },
-                    "vmpublicIPAddressName": {
-                        "value": "[parameters('publicIPAddressName')]"
-                    },
-                    "dnsPrefix": {
-                        "value": "[parameters('dnsNameForPublicIP')]"
-                    },
-                    "publicIPAddressType": {
-                        "value": "[variables('publicIPAddressType')]"
-                    }
-                }
+              "addressPrefix": "[variables('subnetPrefix')]"
             }
-        },
-        {
-            "apiVersion": "[variables('apiVersion')]",
-            "type": "Microsoft.Network/virtualNetworks",
-            "name": "[variables('virtualNetworkName')]",
-            "location": "[parameters('location')]",
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[parameters('frontEndNSGName')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "displayName": "NSG - Public IPs"
+      },
+      "properties": {
+        "securityRules": [
+          {
+            "name": "rdp-rule",
             "properties": {
-                "addressSpace": {
-                    "addressPrefixes": [
-                        "[variables('addressPrefix')]"
-                    ]
-                },
-                "subnets": [
-                    {
-                        "name": "[variables('subnetName')]",
-                        "properties": {
-                            "addressPrefix": "[variables('subnetPrefix')]"
-                        }
-                    }
-                ]
+              "description": "Allow RDP",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "3389",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
             }
+          },
+          {
+            "name": "web-rule",
+            "properties": {
+              "description": "Allow WEB",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "80",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 101,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('nicName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/SettingUpPublicIPs",
+        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('publicIPAddressName'))]"
+              },
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              },
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('frontEndNSGName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('sqlSrvDBNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[parameters('location')]",
+      "apiVersion": "[variables('apiVersion')]",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/SettingUpUbuntuPublicIPs",
+        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+      ],
+      "tags": {
+        "displayName": "SQLSrvDBNic"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              },
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('sqlPublicIp'))]"
+              },
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('frontEndNSGName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[concat( 'sqlSrv14')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[parameters('location')]",
+      "apiVersion": "[variables('apiVersion')]",
+      "dependsOn": [
+        "storageAccountSetup",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('sqlSrvDBNicName'))]"
+      ],
+      "tags": {
+        "displayName": "SQL-Svr-DB"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('sqlVmSize')]"
         },
-        {
-            "apiVersion": "2015-06-15",
-            "type": "Microsoft.Network/networkSecurityGroups",
-            "name": "[parameters('frontEndNSGName')]",
-            "location": "[parameters('location')]",
-            "tags": {
-                "displayName": "NSG - Public IPs"
+        "osProfile": {
+          "computerName": "[parameters('sqlSrvDBName')]",
+          "adminUsername": "[parameters('sqladminUsername')]",
+          "adminPassword": "[parameters('sqladminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('sqlImagePublisher')]",
+            "offer": "[variables('sqlImageOffer')]",
+            "sku": "[variables('sqlImageSku')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "SQL-Svr-DBOSDisk",
+            "vhd": {
+              "uri": "[concat('http://', parameters('storageAccountName'), '.blob.core.windows.net/', variables('vhdContainer'), '/', variables('sqlSrvDBOsDiskName'), '.vhd')]"
             },
-            "properties": {
-                "securityRules": [
-                    {
-                        "name": "rdp-rule",
-                        "properties": {
-                            "description": "Allow RDP",
-                            "protocol": "Tcp",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "3389",
-                            "sourceAddressPrefix": "Internet",
-                            "destinationAddressPrefix": "*",
-                            "access": "Allow",
-                            "priority": 100,
-                            "direction": "Inbound"
-                        }
-                    },
-                    {
-                        "name": "web-rule",
-                        "properties": {
-                            "description": "Allow WEB",
-                            "protocol": "Tcp",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "80",
-                            "sourceAddressPrefix": "Internet",
-                            "destinationAddressPrefix": "*",
-                            "access": "Allow",
-                            "priority": 101,
-                            "direction": "Inbound"
-                        }
-                    }
-                ]
-            }
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
         },
-        {
-            "apiVersion": "[variables('apiVersion')]",
-            "type": "Microsoft.Network/networkInterfaces",
-            "name": "[variables('nicName')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "Microsoft.Resources/deployments/SettingUpPublicIPs",
-                "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
-            ],
-            "properties": {
-                "ipConfigurations": [
-                    {
-                        "name": "ipconfig1",
-                        "properties": {
-                            "privateIPAllocationMethod": "Dynamic",
-                            "publicIPAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('publicIPAddressName'))]"
-                            },
-                            "subnet": {
-                                "id": "[variables('subnetRef')]"
-                            },
-                            "networkSecurityGroup": {
-                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('frontEndNSGName'))]"
-                            }
-                        }
-                    }
-                ]
-            }
-        },
-        {
-            "name": "[variables('sqlSrvDBNicName')]",
-            "type": "Microsoft.Network/networkInterfaces",
-            "location": "[parameters('location')]",
-            "apiVersion": "[variables('apiVersion')]",
-            "dependsOn": [
-                "Microsoft.Resources/deployments/SettingUpUbuntuPublicIPs",
-                "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
-            ],
-            "tags": {
-                "displayName": "SQLSrvDBNic"
-            },
-            "properties": {
-                "ipConfigurations": [
-                    {
-                        "name": "ipconfig1",
-                        "properties": {
-                            "privateIPAllocationMethod": "Dynamic",
-                            "subnet": {
-                                "id": "[variables('subnetRef')]"
-                            },
-                            "publicIPAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('sqlPublicIp'))]"
-                            },
-                            "networkSecurityGroup": {
-                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('frontEndNSGName'))]"
-                            }
-                        }
-                    }
-                ]
-            }
-        },
-        {
-            "name": "[concat( 'sqlSrv14')]",
-            "type": "Microsoft.Compute/virtualMachines",
-            "location": "[parameters('location')]",
-            "apiVersion": "[variables('apiVersion')]",
-            "dependsOn": [
-                "storageAccountSetup",
-                "[concat('Microsoft.Network/networkInterfaces/', variables('sqlSrvDBNicName'))]"
-            ],
-            "tags": {
-                "displayName": "SQL-Svr-DB"
-            },
-            "properties": {
-                "hardwareProfile": {
-                    "vmSize": "[parameters('sqlVmSize')]"
-                },
-                "osProfile": {
-                    "computerName": "[parameters('sqlSrvDBName')]",
-                    "adminUsername": "[parameters('sqladminUsername')]",
-                    "adminPassword": "[parameters('sqladminPassword')]"
-                },
-                "storageProfile": {
-                    "imageReference": {
-                        "publisher": "[variables('sqlImagePublisher')]",
-                        "offer": "[variables('sqlImageOffer')]",
-                        "sku": "[variables('sqlImageSku')]",
-                        "version": "latest"
-                    },
-                    "osDisk": {
-                        "name": "SQL-Svr-DBOSDisk",
-                        "vhd": {
-                            "uri": "[concat('http://', parameters('storageAccountName'), '.blob.core.windows.net/', variables('vhdContainer'), '/', variables('sqlSrvDBOsDiskName'), '.vhd')]"
-                        },
-                        "caching": "ReadWrite",
-                        "createOption": "FromImage"
-                    }
-                },
 
-                "networkProfile": {
-                    "networkInterfaces": [
-                        {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('sqlSrvDBNicName'))]"
-                        }
-                    ]
-                }
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('sqlSrvDBNicName'))]"
             }
-        },
-        {
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat( 'sqlSrv14','/WinRMCustomScriptExtension')]",
-            "apiVersion": "[variables('apiVersion')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', 'sqlSrv14')]"
-            ],
-            "properties": {
-                "publisher": "Microsoft.Compute",
-                "type": "CustomScriptExtension",
-                "typeHandlerVersion": "1.4",
-                "autoUpgradeMinorVersion": true,
-                "settings": {
-                    "fileUris": [ "[concat(variables('baseUrl'),'createdb.ps1')]" ],
-                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -file createdb.ps1 ',parameters('sqlSrvDBName'))]"
-                }
-            }
-        },
-        {
-            "name": "ubuntuVirtualMachineTemplate",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('deployments-api-version')]",
-            "dependsOn": [
-                "storageAccountSetup",
-                "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "uri": "[variables('virtualMachineTemplateURL')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "vmName": {
-                        "value": "[parameters('vmName')]"
-                    },
-                    "location": {
-                        "value": "[parameters('location')]"
-                    },
-                    "storageAccountName": {
-                        "value": "[parameters('storageAccountName')]"
-                    },
-                    "adminUsername": {
-                        "value": "[parameters('adminUsername')]"
-                    },
-                    "adminPassword": {
-                        "value": "[parameters('adminPassword')]"
-                    },
-                    "sshPublicKey": {
-                        "value": "[parameters('sshPublicKey')]"
-                    },
-                    "sshKeyPath": {
-                        "value": "[variables('sshKeyPath')]"
-                    },
-                    "vmSize": {
-                        "value": "[variables('vmSize')]"
-                    },
-                    "nicName": {
-                        "value": "[variables('nicName')]"
-                    },
-                    "virtualMachinesApiVersion": {
-                        "value": "[variables('apiVersion')]"
-                    },
-                    "vmExtensionsApiVersion": {
-                        "value": "[variables('apiVersion')]"
-                    }
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(parameters('vmName'), '/install_dgsecure')]",
-            "apiVersion": "[variables('apiVersion')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "ubuntuVirtualMachineTemplate",
-                "[concat('Microsoft.Compute/virtualMachines/', 'sqlSrv14')]"
-            ],
-            "properties": {
-                "publisher": "Microsoft.OSTCExtensions",
-                "type": "CustomScriptForLinux",
-                "typeHandlerVersion": "1.4",
-                "autoUpgradeMinorVersion": true,
-                "settings": {
-                    "fileUris": [ "[concat(variables('baseUrl'),'SetupDgSecure.sh')]" ],
-                    "commandToExecute": "[concat('sh SetupDgSecure.sh ', reference('SettingUpPublicIPs').outputs.fqdn.value)]"
-                }
-            }
+          ]
         }
-    ]
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat( 'sqlSrv14','/WinRMCustomScriptExtension')]",
+      "apiVersion": "[variables('apiVersion')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', 'sqlSrv14')]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.4",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [ "[concat(variables('baseUrl'),'createdb.ps1')]" ],
+          "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -file createdb.ps1 ',parameters('sqlSrvDBName'))]"
+        }
+      }
+    },
+    {
+      "name": "ubuntuVirtualMachineTemplate",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "[variables('deployments-api-version')]",
+      "dependsOn": [
+        "storageAccountSetup",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('virtualMachineTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vmName": {
+            "value": "[parameters('vmName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "storageAccountName": {
+            "value": "[parameters('storageAccountName')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "sshPublicKey": {
+            "value": "[parameters('sshPublicKey')]"
+          },
+          "sshKeyPath": {
+            "value": "[variables('sshKeyPath')]"
+          },
+          "vmSize": {
+            "value": "[variables('vmSize')]"
+          },
+          "nicName": {
+            "value": "[variables('nicName')]"
+          },
+          "virtualMachinesApiVersion": {
+            "value": "[variables('apiVersion')]"
+          },
+          "vmExtensionsApiVersion": {
+            "value": "[variables('apiVersion')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('vmName'), '/install_dgsecure')]",
+      "apiVersion": "[variables('apiVersion')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "ubuntuVirtualMachineTemplate",
+        "[concat('Microsoft.Compute/virtualMachines/', 'sqlSrv14')]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.OSTCExtensions",
+        "type": "CustomScriptForLinux",
+        "typeHandlerVersion": "1.4",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [ "[concat(variables('baseUrl'),'SetupDgSecure.sh')]" ],
+          "commandToExecute": "[concat('sh SetupDgSecure.sh ', reference('SettingUpPublicIPs').outputs.fqdn.value)]"
+        }
+      }
+    }
+  ]
 }

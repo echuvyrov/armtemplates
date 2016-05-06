@@ -1,0 +1,304 @@
+{
+    "handler": "Microsoft.Compute.MultiVm",
+    "version": "0.0.1-preview",
+    "parameters": {
+        "basics": [
+            {
+                "name": "adminUsername",
+                "type": "Microsoft.Compute.UserNameTextBox",
+                "label": "Admin User Name for VectorH Name, Director, Ambari and Data Nodes",
+                "defaultValue": "VectorHAdmin",
+                "toolTip": "The name of the admin user for initial SSH access to VectorH Nodes.",
+                "constraints": {
+                    "required": true
+                },
+                "osPlatform": "Linux"
+            },
+            {
+                "name": "adminPassword",
+                "type": "Microsoft.Compute.CredentialsCombo",
+                "label": {
+                    "authenticationType": "Authentication Type",
+                    "password": "Password for VectorH Nodes Admin User",
+                    "confirmPassword": "Confirm Password",
+                    "sshPublicKey": "SSH Public Key for admin User"
+                },
+                "toolTip": {
+                    "authenticationType": "Authentication Type for the admin user",
+                    "password": "Password for the admin user",
+                    "sshPublicKey": "SSH Public Key for the Leader Node Admin User"
+                },
+                "constraints": {
+                    "required": true
+                },
+                "options": {
+                    "hideConfirmation": false
+                },
+                "osPlatform": "Linux"
+            }
+        ],
+        "steps": [
+            {
+                "name": "vectorHSettings",
+                "label": "VectorH Settings",
+                "subLabel": {
+                    "preValidation": "Configure VectorH settings",
+                    "postValidation": "Done"
+                },
+                "bladeTitle": "VectorH Settings",
+                "elements": [
+                    {
+                        "name": "clusterPrefix",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "VectorH Cluster Name Prefix",
+                        "defaultValue": "VectorH",
+                        "toolTip": "The name of the VectorH cluster.",
+                        "constraints": {
+                            "required": true,
+                            "regex": "^[a-z0-9A-Z]{1,20}$",
+                            "validationMessage": "Only alphanumeric characters are allowed, and the value must be 1-20 characters long."
+                        }
+                    },
+
+                    {
+                        "name": "dataNodeSize",
+                        "type": "Microsoft.Compute.SizeSelector",
+                        "label": "VectorH compute virtual machine size",
+                        "toolTip": "Recommendations are D3 for development testing, DS14 for general production workloads, GS4 for memory based production workloads.",
+                        "recommendedSizes": [
+                            "Standard_D2_v2",
+                            "Standard_DS14",
+                            "Standard_G4"
+                        ],
+                        "constraints": {
+                            "allowedSizes": [
+                                "Standard_D2_v2",
+                                "Standard_DS14",
+                                "Standard_G4"
+                            ]
+                        },
+                        "osPlatform": "Linux",
+                        "imageReference": {
+                            "publisher": "OpenLogic",
+                            "offer": "CentOS",
+                            "sku": "6.7"
+                        },
+                        "count": "[steps('vectorHSettings').dataNodeCount]"
+                    },
+
+                    {
+                        "name": "dataNodeCount",
+                        "type": "Microsoft.Common.DropDown",
+                        "label": "Number of Data Nodes",
+                        "defaultValue": "3",
+                        "toolTip": "The number of VectorH data nodes to provision. More data nodes will increase data capacity and compute processing.",
+                        "constraints": {
+                            "allowedValues": [
+                                {
+                                    "label": "3",
+                                    "value": "3"
+                                },
+                                {
+                                    "label": "4",
+                                    "value": "4"
+                                },
+                                {
+                                    "label": "5",
+                                    "value": "5"
+                                },
+                                {
+                                    "label": "6",
+                                    "value": "6"
+                                },
+                                {
+                                    "label": "7",
+                                    "value": "7"
+                                },
+                                {
+                                    "label": "8",
+                                    "value": "8"
+                                },
+                                {
+                                    "label": "9",
+                                    "value": "9"
+                                },
+                                {
+                                    "label": "10",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "virtualNetwork",
+                        "type": "Microsoft.Network.VirtualNetworkCombo",
+                        "label": {
+                            "virtualNetwork": "Virtual network",
+                            "subnets": "Subnet"
+                        },
+                        "toolTip": {
+                            "virtualNetwork": "Virtual Network Name",
+                            "subnets": "Subnet requied for the VectorH product"
+                        },
+                        "defaultValue": {
+                            "addressPrefixSize": "/16"
+                        },
+                        "constraints": {
+                            "minAddressPrefixSize": "/16"
+                        },
+                        "options": {
+                            "hideExisting": true
+                        },
+                        "subnets": {
+                            "subnet1": {
+                                "label": "Subnet",
+                                "defaultValue": {
+                                    "name": "Subnet-1",
+                                    "addressPrefixSize": "/24"
+                                },
+                                "constraints": {
+                                    "minAddressPrefixSize": "/24",
+                                    "minAddressCount": 16,
+                                    "requireContiguousAddresses": false
+                                }
+                            }
+                        }
+
+                    },
+                    {
+                        "name": "nameNodePublicIpAddress",
+                        "type": "Microsoft.Network.PublicIpAddressCombo",
+                        "label": {
+                            "publicIpAddress": "Public IP address for Name Node",
+                            "domainNameLabel": "Public DNS label for Name Node"
+                        },
+                        "toolTip": {
+                            "domainNameLabel": "DNS label for the Name Node public IP address."
+                        },
+                        "defaultValue": {
+                            "publicIpAddressName": "namevectorhpubip",
+                            "domainNameLabel": "namevectorhpubip"
+                        },
+                        "options": {
+                            "hideNone": true,
+                            "hideExisting": true
+                        },
+                        "constraints": {
+                            "required": {
+                                "domainNameLabel": true
+                            }
+                        }
+                    },
+                    {
+                        "name": "directorNodePublicIpAddress",
+                        "type": "Microsoft.Network.PublicIpAddressCombo",
+                        "label": {
+                            "publicIpAddress": "Public IP address for Director Node",
+                            "domainNameLabel": "Public DNS labelfor Director Node"
+                        },
+                        "toolTip": {
+                            "domainNameLabel": "DNS label for the Director Node public IP address."
+                        },
+                        "defaultValue": {
+                            "publicIpAddressName": "dirvectorhpubip",
+                            "domainNameLabel": "dirvectorhpubip"
+                        },
+                        "options": {
+                            "hideNone": true,
+                            "hideExisting": true
+                        },
+                        "constraints": {
+                            "required": {
+                                "domainNameLabel": true
+                            }
+                        }
+                    },
+                    {
+                        "name": "dataNodePublicIpAddress",
+                        "type": "Microsoft.Network.PublicIpAddressCombo",
+                        "label": {
+                            "publicIpAddress": "Public IP address for Main Data Node",
+                            "domainNameLabel": "Public DNS label for Main Data Node"
+                        },
+                        "toolTip": {
+                            "domainNameLabel": "DNS label for the Main Data Node public IP address."
+                        },
+                        "defaultValue": {
+                            "publicIpAddressName": "datavectorhpubip",
+                            "domainNameLabel": "datavectorhpubip"
+                        },
+                        "options": {
+                            "hideNone": true,
+                            "hideExisting": true
+                        },
+                        "constraints": {
+                            "required": {
+                                "domainNameLabel": true
+                            }
+                        }
+                    },
+                    {
+                        "name": "ambariNodePublicIpAddress",
+                        "type": "Microsoft.Network.PublicIpAddressCombo",
+                        "label": {
+                            "publicIpAddress": "Public IP address for Ambari Node",
+                            "domainNameLabel": "Public DNS label for Ambari Node"
+                        },
+                        "toolTip": {
+                            "domainNameLabel": "DNS label for the Ambari Node public IP address."
+                        },
+                        "defaultValue": {
+                            "publicIpAddressName": "ambvectorhpubip",
+                            "domainNameLabel": "ambvectorhpubip"
+                        },
+                        "options": {
+                            "hideNone": true,
+                            "hideExisting": true
+                        },
+                        "constraints": {
+                            "required": {
+                                "domainNameLabel": true
+                            }
+                        }
+                    },
+                    {
+                        "name": "acceptTerms",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Please accept the terms and conditions",
+                        "defaultValue": "",
+                        "toolTip": "Please type the word 'accept' in the field below",
+                        "constraints": {
+                            "required": true,
+                            "regex": "accept",
+                            "validationMessage": "You must type the word 'accept' in this field"
+                        }
+                    }
+                ]
+            }
+        ],
+        "outputs": {
+            "adminUsername": "[basics('adminUsername')]",
+            "adminPassword": "[basics('adminPassword').password]",
+            "authenticationType": "[basics('adminPassword').authenticationType]",
+            "sshPublicKey": "[basics('adminPassword').sshPublicKey]",
+            "clusterPrefix": "[steps('vectorHSettings').clusterPrefix]",
+            "dataNodeCount": "[steps('vectorHSettings').dataNodeCount]",
+            "dataNodeSize": "[steps('vectorHSettings').dataNodeSize]",
+            "virtualNetworkName": "[steps('vectorHSettings').virtualNetwork.name]",
+            "virtualNetworkAddressPrefix": "[steps('vectorHSettings').virtualNetwork.addressPrefix]",
+            "subnet1Name": "[steps('vectorHSettings').virtualNetwork.subnets.subnet1.name]",
+            "subnet1Prefix": "[steps('vectorHSettings').virtualNetwork.subnets.subnet1.addressPrefix]",
+            "vnetNewOrExisting": "[steps('vectorHSettings').virtualNetwork.newOrExisting]",
+            "virtualNetworkExistingRGName": "[steps('vectorHSettings').virtualNetwork.resourceGroup]",
+            "nameNodePublicIpAddress": "[steps('vectorHSettings').nameNodePublicIpAddress.name]",
+            "nameNodePublicIpDnsName": "[steps('vectorHSettings').nameNodePublicIpAddress.domainNameLabel]",
+            "directorNodePublicIpAddress": "[steps('vectorHSettings').directorNodePublicIpAddress.name]",
+            "directorNodePublicIpDnsName": "[steps('vectorHSettings').directorNodePublicIpAddress.domainNameLabel]",
+            "dataNodePublicIpAddress": "[steps('vectorHSettings').dataNodePublicIpAddress.name]",
+            "dataNodePublicIpDnsName": "[steps('vectorHSettings').dataNodePublicIpAddress.domainNameLabel]",
+            "ambariNodePublicIpAddress": "[steps('vectorHSettings').ambariNodePublicIpAddress.name]",
+            "ambariNodePublicIpDnsName": "[steps('vectorHSettings').ambariNodePublicIpAddress.domainNameLabel]",
+            "location": "[location()]"
+        }
+    }
+}
