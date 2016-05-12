@@ -111,7 +111,7 @@
                         }
                     },
                     {
-                        "name": "vmSize",
+                        "name": "VMSize",
                         "type": "Microsoft.Compute.SizeSelector",
                         "label": "VM size",
                         "toolTip": "",
@@ -263,7 +263,7 @@
             "sqlPublicIp": "[steps('infrastructureInfo').dnsNameForSQLPublicIP.name]",
             "dnsNameForSQLPublicIP": "[steps('infrastructureInfo').dnsNameForSQLPublicIP.domainNameLabel]",
             "sqlVMSize": "[steps('infrastructureInfo').sqlVMSize]",
-            "vMSize": "[steps('infrastructureInfo').vMSize]"
+            "VMSize": "[steps('infrastructureInfo').VMSize]"
         }
     }
 }
