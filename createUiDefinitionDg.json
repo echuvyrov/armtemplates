@@ -1,0 +1,274 @@
+{
+  "handler": "Microsoft.Compute.MultiVm",
+  "version": "0.0.1-preview",
+  "parameters": {
+    "basics": [
+      {
+        "name": "adminUsername",
+        "type": "Microsoft.Compute.UserNameTextBox",
+        "label": "VM Admin name",
+        "defaultValue": "dg-admin",
+        "toolTip": "",
+        "constraints": {
+          "required": true
+        },
+        "osPlatform": "Linux"
+      },
+      {
+        "name": "SSHCredentials",
+        "type": "Microsoft.Compute.CredentialsCombo",
+        "label": {
+          "authenticationType": "Authentication type",
+          "password": "VM Admin password",
+          "confirmPassword": "Confirm password",
+          "sshPublicKey": "SSH public key"
+        },
+        "toolTip": {
+          "password": "The admin password entered here will be used on the Ubuntu DgSecure VM."
+        },
+        "constraints": {
+          "required": true
+        },
+        "options": {
+          "hideConfirmation": false
+        },
+        "osPlatform": "Linux"
+      },
+      {
+        "name": "sqladminUsername",
+        "type": "Microsoft.Compute.UserNameTextBox",
+        "label": "SQL Server VM Admin name",
+        "defaultValue": "dg-admin",
+        "toolTip": "",
+        "constraints": {
+          "required": true
+        },
+        "osPlatform": "Windows"
+      },
+      {
+        "name": "sqladminPassword",
+        "type": "Microsoft.Compute.CredentialsCombo",
+        "label": {
+          "password": "SQL Server VM Admin password",
+          "confirmPassword": "Confirm password"
+        },
+        "toolTip": {
+          "password": "The admin password entered here will be used on the Ubuntu DgSecure VM."
+        },
+        "constraints": {
+          "required": true
+        },
+        "osPlatform": "Windows"
+      },
+      {
+        "name": "vmName",
+        "type": "Microsoft.Common.TextBox",
+        "label": "VM Name",
+        "defaultValue": "MyUbuntuVM",
+        "toolTip": "Name for the Ubuntu Virtual Machine.",
+        "constraints": {
+          "required": true,
+          "regex": "^[a-z0-9A-Z]{1,20}$",
+          "validationMessage": "VM Name should contain only letters and numbers, and the value must be 1-20 characters long."
+        }
+      },
+      {
+        "name": "sqlSrvDBName",
+        "type": "Microsoft.Common.TextBox",
+        "label": "SQL Server DB Name",
+        "defaultValue": "SqlServer14",
+        "toolTip": "Name for the SQL Server Virtual Machine.",
+        "constraints": {
+          "required": true,
+          "regex": "^[a-z0-9A-Z]{1,20}$",
+          "validationMessage": "SQL Server Name should contain only letters and numbers, and the value must be 1-20 characters long."
+
+        }
+      }
+    ],
+
+    "steps": [
+      {
+        "name": "infrastructureInfo",
+        "label": "Infrastructure information",
+        "subLabel": {
+          "preValidation": "Provide infrastructure information",
+          "postValidation": "Done"
+        },
+        "bladeTitle": "Infrastructure information",
+        "elements": [
+          {
+            "name": "storageAccount",
+            "type": "Microsoft.Storage.StorageAccountSelector",
+            "label": "Select or create a storage account",
+            "toolTip": "The two Virtual Hard Disks (VHDs) for the VMs will be stored in this storage account.",
+            "constraints": {
+              "required": true,
+              "allowedTypes": [
+                "Standard_LRS",
+                "Standard_GRS",
+                "Standard_RAGRS",
+                "Standard_ZRS"
+              ]
+            },
+            "defaultValue": {
+              "type": "Standard_LRS"
+            }
+          },
+          {
+            "name": "VMSize",
+            "type": "Microsoft.Compute.SizeSelector",
+            "label": "VM size",
+            "toolTip": "",
+            "recommendedSizes": [
+              "Standard_D13_v2",
+              "Standard_D14_v2"
+            ],
+            "constraints": {
+              "required": true,
+              "excludedSizes": [
+                "Basic_A0",
+                "Basic_A1",
+                "Basic_A2",
+                "Standard_A0",
+                "Standard_A1",
+                "Standard_A2",
+                "Standard_A5",
+                "Standard_D1",
+                "Standard_D2",
+                "Standard_D11",
+                "Standard_D1_v2",
+                "Standard_D2_v2",
+                "Standard_D11_v2",
+                "Standard_DS1",
+                "Standard_DS2",
+                "Standard_DS11",
+                "Standard_G1",
+                "Standard_GS1"
+              ]
+            },
+            "imageReference": {
+              "publisher": "Canonical",
+              "offer": "UbuntuServer",
+              "sku": "14.04.3-LTS"
+            },
+            "osPlatform": "Linux"
+          },
+          {
+            "name": "sqlVMSize",
+            "type": "Microsoft.Compute.SizeSelector",
+            "label": "VM size for SQL Server",
+            "toolTip": "The size of the SQL VM Created",
+            "recommendedSizes": [
+              "Standard_DS1",
+              "Standard_DS2",
+              "Standard_DS3",
+              "Standard_DS4",
+              "Standard_DS11",
+              "Standard_DS12",
+              "Standard_DS13",
+              "Standard_DS14",
+              "Standard_D13_v2",
+              "Standard_D14_v2"
+            ],
+            "constraints": {
+              "required": true,
+              "excludedSizes": [
+                "Basic_A0",
+                "Basic_A1",
+                "Basic_A2",
+                "Standard_A0",
+                "Standard_A1",
+                "Standard_A2",
+                "Standard_A5",
+                "Standard_D1",
+                "Standard_D2",
+                "Standard_D11",
+                "Standard_D1_v2",
+                "Standard_D2_v2",
+                "Standard_D11_v2",
+                "Standard_G1",
+                "Standard_GS1"
+              ]
+            },
+            "imageReference": {
+              "publisher": "MicrosoftSQLServer",
+              "offer": "SQL2014-WS2012R2",
+              "sku": "Standard"
+            },
+            "osPlatform": "Linux"
+          },
+          {
+            "name": "dnsNameForPublicIP",
+            "type": "Microsoft.Network.PublicIpAddressCombo",
+            "label": {
+              "publicIpAddress": "Public IP address of the Ubuntu Node",
+              "domainNameLabel": "Public DNS label of the Ubuntu Node"
+            },
+            "toolTip": {
+              "domainNameLabel": "DNS label for the DgSecure Public IP address."
+            },
+            "defaultValue": {
+              "publicIpAddressName": "dgsecurepublicip",
+              "domainNameLabel": ""
+            },
+            "options": {
+              "hideNone": true,
+              "hideExisting": true
+            },
+            "constraints": {
+              "required": {
+                "domainNameLabel": true
+              }
+            }
+          },
+          {
+            "name": "dnsNameForSQLPublicIP",
+            "type": "Microsoft.Network.PublicIpAddressCombo",
+            "label": {
+              "publicIpAddress": "Public IP address of the SQL Server Node",
+              "domainNameLabel": "Public DNS label of the SQL Server Node"
+            },
+            "toolTip": {
+              "domainNameLabel": "DNS label for the SQL Server Public IP address."
+            },
+            "defaultValue": {
+              "publicIpAddressName": "dgsqlpublicip",
+              "domainNameLabel": ""
+            },
+            "options": {
+              "hideNone": true,
+              "hideExisting": true
+            },
+            "constraints": {
+              "required": {
+                "domainNameLabel": true
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "outputs": {
+      "location": "[location()]",
+      "adminUsername": "[basics('adminUsername')]",
+      "adminPassword": "[basics('SSHCredentials').password]",
+      "authenticationType": "[basics('SSHCredentials').authenticationType]",
+      "sshPublicKey": "[basics('SSHCredentials').sshPublicKey]",
+      "sqladminUsername": "[basics('sqladminUsername')]",
+      "sqladminPassword": "[basics('sqladminPassword').password]",
+      "vmName": "[basics('vmName')]",
+      "sqlSrvDBName": "[basics('sqlSrvDBName')]",
+      "storageAccountNewOrExisting": "[steps('infrastructureInfo').storageAccount.newOrExisting]",
+      "storageAccountName": "[steps('infrastructureInfo').storageAccount.name]",
+      "storageAccountType": "[steps('infrastructureInfo').storageAccount.type]",
+      "existingStorageAccountRG": "[steps('infrastructureInfo').storageAccount.resourceGroup]",
+      "publicIPAddressName": "[steps('infrastructureInfo').dnsNameForPublicIP.name]",
+      "dnsNameForPublicIP": "[steps('infrastructureInfo').dnsNameForPublicIP.domainNameLabel]",
+      "sqlPublicIp": "[steps('infrastructureInfo').dnsNameForSQLPublicIP.name]",
+      "dnsNameForSQLPublicIP": "[steps('infrastructureInfo').dnsNameForSQLPublicIP.domainNameLabel]",
+      "sqlVMSize": "[steps('infrastructureInfo').sqlVMSize]",
+      "VMSize": "[steps('infrastructureInfo').VMSize]"
+    }
+  }
+}

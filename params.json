@@ -1,12 +1,12 @@
 {
   "location": {
-    "value": "westus"
+    "value": "australiaeast"
   },
   "adminUsername": {
     "value": "dg-admin"
   },
   "adminPassword": {
-    "value": "Valley2016!"
+    "value": "Valley2012!"
   },
   "authenticationType": {
     "value": "password"
@@ -15,7 +15,7 @@
     "value": "dg-admin"
   },
   "sqladminPassword": {
-    "value": "Valley2016!"
+    "value": "Valley2012!"
   },
   "vmName": {
     "value": "MyUbuntuVM"
@@ -27,27 +27,30 @@
     "value": "new"
   },
   "storageAccountName": {
-    "value": "hhhh23"
+    "value": "testdg4"
   },
   "storageAccountType": {
     "value": "Standard_LRS"
   },
   "existingStorageAccountRG": {
-    "value": "dgdg13"
+    "value": "testDg4"
   },
   "publicIPAddressName": {
-    "value": "dgsecurepublicip23"
+    "value": "dgsecurepublicip"
   },
   "dnsNameForPublicIP": {
-    "value": "ubuntudns23"
+    "value": "testdg44"
   },
   "sqlPublicIp": {
-    "value": "dgsqlpublicip23"
+    "value": "dgsqlpublicip"
   },
   "dnsNameForSQLPublicIP": {
-    "value": "sqldns23"
+    "value": "testdg45"
   },
   "sqlVMSize": {
+    "value": "Standard_DS1"
+  },
+  "VMSize": {
     "value": "Standard_D13_v2"
   }
 }
