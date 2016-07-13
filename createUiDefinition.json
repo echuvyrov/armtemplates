@@ -133,8 +133,7 @@
               "publisher": "Tibco Software Inc",
               "offer": "Grid Server Engine",
               "sku": "U14042"
-            },
-            "count": "[steps('infrastructureConfig').vmCount]"
+            }
           },
           {
             "name": "storageAccount",
