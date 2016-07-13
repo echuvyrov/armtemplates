@@ -187,6 +187,8 @@
     "outputs": {
       "adminUsername": "[basics('adminUsername')]",
       "adminPassword": "[basics('adminPassword').password]",
+      "authenticationType": "[basics('adminPassword').authenticationType]",
+      "sshPublicKey": "[basics('adminPassword').sshPublicKey]",
       "location": "[location()]",
       "StorageAccountName": "[steps('infrastructureConfig').storageAccount.name]",
       "storageAccountType": "[steps('infrastructureConfig').storageAccount.type]",
