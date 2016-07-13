@@ -1,0 +1,203 @@
+{
+  "handler": "Microsoft.Compute.MultiVm",
+  "version": "0.0.1-preview",
+  "parameters": {
+    "basics": [
+      {
+        "name": "adminUsername",
+        "type": "Microsoft.Compute.UserNameTextBox",
+        "label": "Username",
+        "toolTip": "Admin username for the virtual machines.",
+        "osPlatform": "Linux"
+      },
+      {
+        "name": "adminPassword",
+        "type": "Microsoft.Compute.CredentialsCombo",
+        "label": {
+          "password": "Password",
+          "confirmPassword": "Confirm password"
+        },
+        "toolTip": {
+          "password": "Admin password for the virtual machines."
+        },
+        "osPlatform": "Linux"
+      },
+      {
+        "name": "vmName",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Virtual Machine Name",
+        "toolTip": "The base name of the virtual machine(s)",
+        "defaultValue": "gridengine",
+        "constraints": {
+          "required": true,
+          "regex": "^[a-z0-9A-Z]{1,20}$",
+          "validationMessage": "Only letters and numbers are allowed, and the value must be 1-20 characters long."
+        }
+      },
+      {
+        "name": "directorIP",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Director IP Address",
+        "toolTip": "The IP address that the engine should use to connect to the Director.",
+        "constraints": {
+          "required": true,
+          "regex": "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$",
+          "validationMessage": "IP addrress must be given in ipv4 format"
+        }
+      },
+      {
+        "name": "directorFQDN",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Director FQDN",
+        "toolTip": "The fully qualified domain name of the Director.",
+        "constraints": {
+          "required": true,
+          "regex": "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$",
+          "validationMessage": "Invalid FQDN. Please refer to https://technet.microsoft.com/en-us/library/cc959336.aspx"
+        }
+      },
+      {
+        "name": "directorEngineCommPort",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Director Comm Port",
+        "defaultValue": "8000",
+        "toolTip": "The HTTP Port used by the Director to accept engine connections",
+        "constraints": {
+          "required": true,
+          "regex": "^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$",
+          "validationMessage": "Invalid port number. The value must be numeric between 0 and 65535."
+        }
+      }
+    ],
+    "steps": [
+      {
+        "name": "infrastructureConfig",
+        "label": "Infrastructure settings",
+        "subLabel": {
+          "preValidation": "Configure the infrastructure settings",
+          "postValidation": "Done"
+        },
+        "bladeTitle": "Infrastructure settings",
+        "elements": [
+          {
+            "name": "VmCount",
+            "type": "Microsoft.Common.DropDown",
+            "label": "Number of VMs",
+            "defaultValue": "1",
+            "toolTip": "",
+            "constraints": {
+              "allowedValues": [
+                {
+                  "label": "1",
+                  "value": 1
+                },
+                {
+                  "label": "2",
+                  "value": 2
+                },
+                {
+                  "label": "4",
+                  "value": 4
+                },
+                {
+                  "label": "8",
+                  "value": 8
+                },
+                {
+                  "label": "16",
+                  "value": 16
+                }
+              ]
+            }
+          },
+          {
+            "name": "vmSize",
+            "type": "Microsoft.Compute.SizeSelector",
+            "label": "Virtual machine size",
+            "toolTip": "The size of the virtual machine for the domain controller.",
+            "recommendedSizes": [
+              "Standard_D2",
+              "Standard_D3"
+            ],
+            "constraints": {
+              "allowedSizes": [
+                "Standard_D2",
+                "Standard_D3",
+                "Standard_D4",
+                "Standard_D5_V2",
+                "Standard_G5"
+              ]
+            },
+            "osPlatform": "Linux",
+            "imageReference": {
+              "publisher": "Tibco Software Inc",
+              "offer": "Grid Server Engine",
+              "sku": "U14042"
+            },
+            "count": "[steps('infrastructureConfig').vmCount]"
+          },
+          {
+            "name": "storageAccount",
+            "type": "Microsoft.Storage.StorageAccountSelector",
+            "label": "Storage account",
+            "defaultValue": {
+              "type": "Standard_LRS"
+            }
+          },
+          {
+            "name": "network",
+            "type": "Microsoft.Network.VirtualNetworkCombo",
+            "label": {
+              "virtualNetwork": "Virtual network",
+              "subnets": "Subnets"
+            },
+            "toolTip": {
+              "virtualNetwork": "",
+              "subnets": ""
+            },
+            "defaultValue": {
+              "name": "vnet01",
+              "addressPrefixSize": "/16"
+            },
+            "constraints": {
+              "minAddressPrefixSize": "/16"
+            },
+            "options": {
+              "hideExisting": false
+            },
+            "subnets": {
+              "subnet1": {
+                "label": "subnet",
+                "defaultValue": {
+                  "name": "default",
+                  "addressPrefixSize": "/24"
+                },
+                "constraints": {
+                  "minAddressPrefixSize": "/24",
+                  "minAddressCount": 12,
+                  "requireContiguousAddresses": true
+                }
+              }
+            },
+            "visible": true
+          }
+        ]
+      }
+    ],
+    "outputs": {
+      "adminUsername": "[basics('adminUsername')]",
+      "adminPassword": "[basics('adminPassword').password]",
+      "location": "[location()]",
+      "StorageAccountName": "[steps('infrastructureConfig').storageAccount.name]",
+      "storageAccountType": "[steps('infrastructureConfig').storageAccount.type]",
+      "vmSize": "[steps('infrastructureConfig').vmSize]",
+      "vmName": "[basics('vmName')]",
+      "virtualNetworkName": "[steps('infrastructureConfig').network.name]",
+      "subnetName": "[steps('infrastructureConfig').network.subnets.subnet1.name]",
+      "virtualNetworkResourceGroup": "[steps('infrastructureConfig').network.resourceGroup]",
+      "directorIP": "[basics('directorIP')]",
+      "directorFQDN": "[basics('directorFQDN')]",
+      "directorEngineCommPort": "[basics('directorEngineCommPort')]"
+    }
+  }
+}
