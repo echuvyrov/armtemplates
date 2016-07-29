@@ -23,6 +23,7 @@
     },
     "authenticationType": {
       "type": "string",
+      "defaultValue": "password",
       "metadata": {
         "description": "Authentication type"
       }
@@ -147,14 +148,14 @@
     },
     "virtualNetworkName": {
       "type": "string",
-      "defaultValue": "vectorhvnet",
+      "defaultValue": "dgsecurevnet",
       "metadata": {
         "description": "Name of the Virtual Network"
       }
     },
     "subnet1Name": {
       "type": "string",
-      "defaultValue": "subnet1",
+      "defaultValue": "default",
       "metadata": {
         "description": "The Subnet name"
       }
@@ -175,14 +176,14 @@
     },
     "vnetNewOrExisting": {
       "type": "string",
-      "defaultValue": "new",
+      "defaultValue": "existing",
       "metadata": {
         "description": "New or Existing Virtual Network"
       }
     },
     "virtualNetworkExistingRGName": {
       "type": "string",
-      "defaultValue": "TextVortexRG",
+      "defaultValue": "existingvNetRG",
       "metadata": {
         "description": "Name of the Resource Group for the existing Virtual Network"
       }
