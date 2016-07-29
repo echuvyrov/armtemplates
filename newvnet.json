@@ -1,0 +1,78 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"location": {
+			"type": "string",
+			"metadata": {
+				"description": "Location where to create the resources"
+			}
+		},
+		"virtualNetworkName": {
+			"type": "string",
+			"metadata": {
+				"description": "Name of the Virtual Network"
+			}
+		},
+		"virtualNetworkAddressPrefix": {
+			"type": "string",
+			"metadata": {
+				"description": "Address Prefix for Virtual Network"
+			}		
+		},
+		"subnet1Name": {
+			"type": "string",
+			"metadata": {
+				"description": "Name of first Subnet"
+			}		
+		},
+		"subnet1Prefix": {
+			"type": "string",
+			"metadata": {
+				"description": "Address Prefix for first Subnet"
+			}		
+		},
+		"virtualNetworkExistingRGName": {
+			"type": "string",
+			"metadata": {
+				"description": "Name of the Resource Group for the existing Virtual Network"
+			}					
+		}		
+		
+	},
+	
+	"variables": {
+		"vnetID" : "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
+		"subnet1" : "[concat(variables('vnetID'),'/subnets/',parameters('subnet1Name'))]"
+	},
+	
+	"resources": [
+		{
+			"apiVersion": "2015-05-01-preview",
+			"type": "Microsoft.Network/virtualNetworks",
+			"name": "[parameters('virtualNetworkName')]",
+			"location": "[parameters('location')]",
+			"properties": {
+				"addressSpace": {
+					"addressPrefixes": [
+						"[parameters('virtualNetworkAddressPrefix')]"
+					]
+				},
+				"subnets": [{
+					"name": "[parameters('subnet1Name')]",
+					"properties": {
+						"addressPrefix": "[parameters('subnet1Prefix')]"
+					}
+
+				}]
+			}
+		}
+	],
+	"outputs": {
+		
+        "subnetId": {
+            "value": "[variables('subnet1')]",
+            "type": "string"
+        }		
+	}	
+}
