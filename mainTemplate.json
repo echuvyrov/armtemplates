@@ -194,6 +194,7 @@
     "deployments-api-version": "2016-02-01",
     "storage-api-version": "2015-06-15",
     "nicName": "UbuntuVMNic",
+    "ubuntuNSG": "ubuntuVMNSG",
     "virtualMachineTemplateURL": "[concat(variables('baseUrl'), 'virtualMachine-',parameters('authenticationType'),'.json')]",
     "sshKeyPath": "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]",
     "addressPrefix": "10.0.0.0/16",
@@ -357,6 +358,58 @@
     {
       "apiVersion": "2015-06-15",
       "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[variables('ubuntuNSG')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "allowSSHin_all",
+            "properties": {
+              "description": "Allow SSH in from all locations",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "22",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "rdp-rule",
+            "properties": {
+              "description": "Allow RDP",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "3389",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "web-rule",
+            "properties": {
+              "description": "Allow WEB",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "80",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 101,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkSecurityGroups",
       "name": "[parameters('frontEndNSGName')]",
       "location": "[parameters('location')]",
       "tags": {
@@ -402,7 +455,8 @@
       "location": "[parameters('location')]",
       "dependsOn": [
         "Microsoft.Resources/deployments/SettingUpPublicIPs",
-        "VirtualNetworkTemplate",
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('ubuntuNSG'))]",
+        "VirtualNetworkTemplate"
       ],
       "properties": {
         "ipConfigurations": [
@@ -417,7 +471,7 @@
                 "id": "[reference('VirtualNetworkTemplate').outputs.subnetId.value]"
               },
               "networkSecurityGroup": {
-                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('frontEndNSGName'))]"
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('ubuntuNSG'))]"
               }
             }
           }
