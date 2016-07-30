@@ -386,7 +386,7 @@
               "sourceAddressPrefix": "Internet",
               "destinationAddressPrefix": "*",
               "access": "Allow",
-              "priority": 100,
+              "priority": 101,
               "direction": "Inbound"
             }
           },
@@ -400,7 +400,7 @@
               "sourceAddressPrefix": "Internet",
               "destinationAddressPrefix": "*",
               "access": "Allow",
-              "priority": 101,
+              "priority": 102,
               "direction": "Inbound"
             }
           }
@@ -455,7 +455,7 @@
       "location": "[parameters('location')]",
       "dependsOn": [
         "Microsoft.Resources/deployments/SettingUpPublicIPs",
-        "[concat('Microsoft.Network/networkSecurityGroups/', variables('ubuntuNSG'))]",
+        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('ubuntuNSG'))]",
         "VirtualNetworkTemplate"
       ],
       "properties": {
@@ -469,13 +469,13 @@
               },
               "subnet": {
                 "id": "[reference('VirtualNetworkTemplate').outputs.subnetId.value]"
-              },
-              "networkSecurityGroup": {
-                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('ubuntuNSG'))]"
               }
             }
           }
-        ]
+        ],
+        "networkSecurityGroup": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('ubuntuNSG'))]"
+        }
       }
     },
     {
@@ -485,6 +485,7 @@
       "apiVersion": "[variables('apiVersion')]",
       "dependsOn": [
         "Microsoft.Resources/deployments/SettingUpUbuntuPublicIPs",
+        "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('frontEndNSGName'))]",
         "VirtualNetworkTemplate"
       ],
       "tags": {
@@ -501,13 +502,13 @@
               },
               "publicIPAddress": {
                 "id": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('sqlPublicIp'))]"
-              },
-              "networkSecurityGroup": {
-                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('frontEndNSGName'))]"
               }
             }
           }
-        ]
+        ],
+        "networkSecurityGroup": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('frontEndNSGName'))]"
+        }
       }
     },
     {
